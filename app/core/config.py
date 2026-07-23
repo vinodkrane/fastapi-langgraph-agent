@@ -1,9 +1,8 @@
-"""Centralized application configuration.
+"""Centralised application configuration.
 
-All environment-driven settings live here. Every other module imports
-`settings` from this file instead of reading `os.environ` directly.
-
-Everything gets configuration from one place.
+All settings come from environment variables or the .env file.
+Other modules should import `settings` from here instead of reading
+environment variables directly.
 
              .env
               |
@@ -23,6 +22,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
+    # Load values from .env file
     model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",
@@ -30,40 +30,41 @@ class Settings(BaseSettings):
         extra="ignore",
     )
 
-    # --- App ---
+    # --- Application settings ---
     environment: str = "development"
     app_name: str = "fastapi-langgraph-agent"
     log_level: str = "INFO"
 
-    # --- LLM providers ---
+    # --- LLM settings ---
     model_provider: str = "openai"  # openai | anthropic | google
     model_name: str = "gpt-4.1"
     openai_api_key: str | None = None
     anthropic_api_key: str | None = None
     google_api_key: str | None = None
 
-    # --- Auth ---
-    jwt_secret: str = "change-me-in-production"
+    # --- Authentication settings ---
+    jwt_secret: str
     jwt_algorithm: str = "HS256"
-    api_key: str = "change-me-dev-api-key"
+    api_key: str
 
-    # --- Data stores ---
+    # --- Database and cache settings ---
     redis_url: str = "redis://localhost:6379/0"
     postgres_url: str = "postgresql+asyncpg://user:password@localhost:5432/llmdb"
 
-    # --- Rate limiting ---
+    # --- API rate limit ---
     rate_limit_per_minute: int = 30
 
-    # --- CORS ---
+    # --- CORS - Frontend URLs allowed to call this API ---
     cors_allowed_origins: str = "http://localhost:3000"
 
-    # --- Observability ---
+    # --- LangChain  Observability settings ---
     langchain_tracing_v2: bool = False
     langchain_api_key: str | None = None
     langchain_project: str = "enterprise-agent"
 
     @property
     def cors_origins_list(self) -> list[str]:
+        # Convert comma-separated URLs into a list.
         return [o.strip() for o in self.cors_allowed_origins.split(",") if o.strip()]
 
     @property
