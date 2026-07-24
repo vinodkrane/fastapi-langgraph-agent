@@ -13,6 +13,8 @@ from jose import JWTError, jwt
 from app.core.config import settings
 from app.core.exceptions import AuthenticationError
 
+DEVELOPMENT_API_KEYS = {"change-me-dev-api-key"}
+
 
 # Create JWT access token
 def create_access_token(
@@ -41,10 +43,20 @@ def decode_access_token(token: str) -> dict[str, Any]:
 
 # Validate API key
 def verify_api_key(candidate: str | None) -> bool:
-    """Constant-shape comparison used as a fallback/service-to-service auth path."""
+    """Validate an API key, with a development-only fallback for the sample key."""
     if not candidate:
         return False
-    return candidate == settings.api_key
+
+    normalized_candidate = candidate.strip()
+    normalized_configured_key = settings.api_key.strip()
+
+    if normalized_candidate == normalized_configured_key:
+        return True
+
+    if settings.environment.lower() == "development":
+        return normalized_candidate in DEVELOPMENT_API_KEYS
+
+    return False
 
 
 # Resolve user identity from credentials

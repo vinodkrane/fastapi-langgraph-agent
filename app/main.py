@@ -27,6 +27,7 @@ from app.middleware.cors import cors_kwargs
 from app.middleware.logging import LoggingMiddleware
 from app.middleware.rate_limit import limiter, rate_limit_exceeded_handler
 from app.middleware.request_id import RequestIDMiddleware
+from app.api.router import api_router
 
 configure_logging()
 log = structlog.get_logger(__name__)
@@ -66,6 +67,9 @@ def create_app() -> FastAPI:
     app.add_middleware(LoggingMiddleware)
     app.add_middleware(RequestIDMiddleware)
     app.add_middleware(CORSMiddleware, **cors_kwargs())
+
+    # --- API router ---
+    app.include_router(api_router)
 
     # --- Exception handlers ---
     register_exception_handlers(app)
